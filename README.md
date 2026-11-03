@@ -54,7 +54,7 @@ After the one-time branch setup below, future builds use a single command:
 cd ~/MobileOperationsController && bash build_apk.sh
 ```
 
-The script fetches and fast-forwards this branch, downloads the pinned JSch dependency if missing, compiles the Android Java source, creates a fresh DEX/APK, aligns it, signs it with the keystore kept on the phone, verifies the signature, and atomically replaces `~/storage/downloads/controller-v06-signed.apk`. It never deletes the previous Downloads APK until the new APK has passed signature verification.
+The script fetches and fast-forwards this branch, downloads the pinned JSch dependency if missing, compiles the Android Java source, creates a fresh DEX/APK, aligns it, signs it with the keystore kept on the phone, verifies the signature, and atomically replaces `~/storage/downloads/controller-v07-signed.apk`. It never deletes the previous Downloads APK until the new APK has passed signature verification.
 
 ### One-time setup on an existing Termux checkout
 
