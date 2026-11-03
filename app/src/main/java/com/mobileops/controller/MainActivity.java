@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
         LinearLayout root=new LinearLayout(this); root.setOrientation(1);
         root.setPadding(dp(18),dp(22),dp(18),dp(24)); scroll.addView(root);
         root.addView(label("MOBILE OPERATIONS",22,true));
-        root.addView(label("BUILD: SSH-DIAG-20261103-B2",12,true));
+        root.addView(label("BUILD: SSH-DIAG-20261103-B3",12,true));
         root.addView(label("Operations Controller • Pradipweb SSH monitor",13,false));
         gap(root,18);
 
@@ -97,13 +97,13 @@ public class MainActivity extends Activity {
 
         LinearLayout next=card(root);
         next.addView(label("3. CONNECTION TEST",17,true)); gap(next,6);
-        next.addView(label("Performs strict host-key verification, public-key SSH authentication, then fixed read-only hostname and Docker checks.",13,false));
+        next.addView(label("Live read-only monitoring: server uptime, CPU load, RAM, disk, Docker containers and local HTTP health.",13,false));
         gap(next,8);
         next.addView(label("READ-ONLY POLICY • No server changes • No arbitrary shell commands",12,true));
         gap(next,8);
-        diagnosticOutput=label("Ready. Import the SSH key and save the independently verified fingerprint.",13,false);
+        diagnosticOutput=label("Ready. Import the SSH key and save the independently verified fingerprint. Tap refresh to read live server health.",13,false);
         next.addView(diagnosticOutput);
-        testButton=button("TEST SSH & READ SERVER STATUS",next,()->runReadOnlyChecks());
+        testButton=button("REFRESH SERVER MONITORING",next,()->runReadOnlyChecks());
         setContentView(scroll);
     }
 
@@ -134,9 +134,8 @@ public class MainActivity extends Activity {
             try {
                 privateKey=decryptStoredKey();
                 String fingerprint=getSharedPreferences(PREFS,0).getString("host_fingerprint","");
-                String host=PradipwebSshClient.run(privateKey,fingerprint,PradipwebSshClient.Check.HOSTNAME);
-                String docker=PradipwebSshClient.run(privateKey,fingerprint,PradipwebSshClient.Check.DOCKER_STATUS);
-                final String result="SSH authentication: SUCCESS\nVerified host: "+host+"\n\nDocker containers:\n"+docker;
+                String overview=PradipwebSshClient.run(privateKey,fingerprint,PradipwebSshClient.Check.SYSTEM_OVERVIEW);
+                final String result=formatOverview(overview);
                 runOnUiThread(() -> {
                     overall.setText("CONNECTED — host verified and key authenticated");
                     diagnosticOutput.setText(result);
@@ -153,6 +152,35 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> { if(testButton!=null) testButton.setEnabled(true); });
             }
         },"pradipweb-ssh-check").start();
+    }
+
+    private String formatOverview(String raw) {
+        StringBuilder out=new StringBuilder("SERVER CONNECTION  •  SECURE\\n");
+        StringBuilder containers=new StringBuilder();
+        for(String line:raw.split("\\n")) {
+            String[] parts=line.split("\\|",2);
+            if(parts.length<2) continue;
+            String key=parts[0], value=parts[1].trim();
+            if("HOST".equals(key)) out.append("Server: ").append(value).append('\\n');
+            else if("UPTIME".equals(key)) out.append("Uptime: ").append(value).append('\\n');
+            else if("LOAD".equals(key)) out.append("CPU load (1/5/15 min): ").append(value).append('\\n');
+            else if("MEMORY".equals(key)) out.append("RAM: ").append(value).append('\\n');
+            else if("DISK".equals(key)) out.append("Root disk: ").append(value).append('\\n');
+            else if("CONTAINER".equals(key)) containers.append("  • ").append(value).append('\\n');
+            else if("FRONTEND_HTTP".equals(key)) out.append("Frontend HTTP: ").append(httpHealth(value)).append('\\n');
+            else if("BACKEND_HTTP".equals(key)) out.append("Backend API HTTP: ").append(httpHealth(value)).append('\\n');
+        }
+        out.append("\\nDOCKER CONTAINERS\\n");
+        out.append(containers.length()==0 ? "  No container data returned\\n" : containers);
+        out.append("\\nLast checked: ").append(new java.text.SimpleDateFormat("dd MMM yyyy, HH:mm:ss",java.util.Locale.getDefault()).format(new java.util.Date()));
+        return out.toString();
+    }
+
+    private String httpHealth(String code) {
+        try {
+            int status=Integer.parseInt(code);
+            return status>=200 && status<400 ? "HEALTHY ("+code+")" : "NOT HEALTHY ("+code+")";
+        } catch(Exception ignored) { return "UNAVAILABLE ("+code+")"; }
     }
 
     private boolean hasEncryptedKey() {
