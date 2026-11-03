@@ -60,6 +60,7 @@ public class MainActivity extends Activity {
         LinearLayout root=new LinearLayout(this); root.setOrientation(1);
         root.setPadding(dp(18),dp(22),dp(18),dp(24)); scroll.addView(root);
         root.addView(label("MOBILE OPERATIONS",22,true));
+        root.addView(label("BUILD: SSH-DIAG-20261103-B1",12,true));
         root.addView(label("Operations Controller • Pradipweb SSH monitor",13,false));
         gap(root,18);
 
