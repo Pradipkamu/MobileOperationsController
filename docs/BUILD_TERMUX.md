@@ -15,13 +15,17 @@ export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 
 ## Download the SSH library
 
-JSch is a runtime dependency. Download it locally; do not commit the JAR into the repository.
+JSch and Bouncy Castle are runtime dependencies. Bouncy Castle supplies the Ed25519 fallback implementation used by JSch when the runtime lacks the required Java-native EdDSA implementation. Without it, JSch may fail its host-signature capability check with `There are not any available sig algorithm.` Download both locally; do not commit either JAR into the repository.
 
 ```bash
 mkdir -p libs
 curl -fL --retry 3 \
   https://repo.maven.apache.org/maven2/com/github/mwiede/jsch/2.28.8/jsch-2.28.8.jar \
   -o libs/jsch-2.28.8.jar
+
+curl -fL --retry 3 \\
+  https://repo.maven.apache.org/maven2/org/bouncycastle/bcprov-jdk18on/1.86/bcprov-jdk18on-1.86.jar \\
+  -o libs/bcprov-jdk18on-1.86.jar
 ```
 
 ## Compile and package
@@ -33,7 +37,7 @@ mkdir -p build/classes build/dex
 rm -rf build/classes/* build/dex/*
 javac -source 8 -target 8 \
   -bootclasspath "$ANDROID_HOME/platforms/android-35/android.jar" \
-  -classpath libs/jsch-2.28.8.jar \
+  -classpath "libs/jsch-2.28.8.jar:libs/bcprov-jdk18on-1.86.jar" \
   -d build/classes \
   app/src/main/java/com/mobileops/controller/MainActivity.java \
   app/src/main/java/com/mobileops/controller/PinnedHostKeyRepository.java \
@@ -42,7 +46,8 @@ javac -source 8 -target 8 \
 d8 --lib "$ANDROID_HOME/platforms/android-35/android.jar" \
   --output build/dex \
   build/classes/com/mobileops/controller/*.class \
-  libs/jsch-2.28.8.jar
+  libs/jsch-2.28.8.jar \\
+  libs/bcprov-jdk18on-1.86.jar
 
 aapt2 link -o build/unsigned.apk \
   --manifest app/src/main/AndroidManifest.xml \
