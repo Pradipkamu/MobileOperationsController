@@ -9,6 +9,8 @@ KEYSTORE="$HOME/.android/mobile-operations-controller.jks"
 KEY_ALIAS="mobilecontroller"
 JSCH_VERSION="2.28.8"
 JSCH_JAR="$REPO_DIR/libs/jsch-$JSCH_VERSION.jar"
+BC_VERSION="1.86"
+BC_JAR="$REPO_DIR/libs/bcprov-jdk18on-$BC_VERSION.jar"
 ANDROID_PLATFORM="$HOME/lib/android-sdk/platforms/android-35/android.jar"
 ANDROID_LINK_PLATFORM="$HOME/lib/android-sdk/platforms/android-28/android.jar"
 BUILD_TOOLS="$HOME/lib/android-sdk/build-tools/35.0.0"
@@ -63,6 +65,11 @@ if [[ ! -s "$JSCH_JAR" ]]; then
   mv -f "$JSCH_JAR.tmp" "$JSCH_JAR"
 fi
 [[ -s "$JSCH_JAR" ]] || fail "JSch dependency download failed"
+if [[ ! -s "$BC_JAR" ]]; then
+  curl -fL --retry 3 "https://repo.maven.apache.org/maven2/org/bouncycastle/bcprov-jdk18on/$BC_VERSION/bcprov-jdk18on-$BC_VERSION.jar" -o "$BC_JAR.tmp"
+  mv -f "$BC_JAR.tmp" "$BC_JAR"
+fi
+[[ -s "$BC_JAR" ]] || fail "Bouncy Castle dependency download failed"
 
 WORK="$REPO_DIR/build/apk-work"
 rm -rf "$WORK"
@@ -70,7 +77,7 @@ mkdir -p "$WORK/classes" "$WORK/dex"
 
 step "Compile application source"
 javac -source 8 -target 8 \
-  -classpath "$ANDROID_PLATFORM:$JSCH_JAR" \
+  -classpath "$ANDROID_PLATFORM:$JSCH_JAR:$BC_JAR" \
   -d "$WORK/classes" \
   app/src/main/java/com/mobileops/controller/MainActivity.java \
   app/src/main/java/com/mobileops/controller/PinnedHostKeyRepository.java \
@@ -81,7 +88,8 @@ step "Generate fresh DEX"
   --lib "$ANDROID_PLATFORM" \
   --output "$WORK/dex" \
   "$WORK"/classes/com/mobileops/controller/*.class \
-  "$JSCH_JAR"
+  "$JSCH_JAR" \
+  "$BC_JAR"
 [[ -s "$WORK/dex/classes.dex" ]] || fail "D8 did not produce classes.dex"
 
 if ! grep -aF "$MARKER" "$WORK/dex/classes.dex" >/dev/null; then
@@ -101,6 +109,11 @@ aapt2 link \
 cp "$WORK/unsigned.apk" "$WORK/controller.apk"
 cp "$WORK/dex/classes.dex" "$WORK/classes.dex"
 (cd "$WORK" && zip -q controller.apk classes.dex)
+for EXTRA_DEX in "$WORK"/dex/classes[2-9].dex "$WORK"/dex/classes[1-9][0-9].dex; do
+  [[ -f "$EXTRA_DEX" ]] || continue
+  cp "$EXTRA_DEX" "$WORK/$(basename "$EXTRA_DEX")"
+  (cd "$WORK" && zip -q controller.apk "$(basename "$EXTRA_DEX")")
+done
 [[ -s "$WORK/controller.apk" ]] || fail "APK packaging failed"
 
 step "Align APK"
