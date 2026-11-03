@@ -46,7 +46,7 @@ export PATH="$JAVA_HOME/bin:$PREFIX/bin:$BUILD_TOOLS:$ANDROID_HOME/cmdline-tools
 [[ -d "$HOME/storage" ]] || fail "Termux shared storage is not configured. Run: termux-setup-storage"
 [[ -d "$DOWNLOAD_DIR" ]] || mkdir -p "$DOWNLOAD_DIR"
 
-for cmd in git curl aapt2 zip zipalign apksigner unzip strings; do
+for cmd in git curl aapt2 zip zipalign apksigner unzip strings file; do
   command -v "$cmd" >/dev/null 2>&1 || fail "Required command '$cmd' is missing. Install it in Termux first."
 done
 
