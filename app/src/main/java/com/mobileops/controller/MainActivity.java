@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
         LinearLayout root=new LinearLayout(this); root.setOrientation(1);
         root.setPadding(dp(18),dp(22),dp(18),dp(24)); scroll.addView(root);
         root.addView(label("MOBILE OPERATIONS",22,true));
-        root.addView(label("BUILD: SSH-DIAG-20261103-B3",12,true));
+        root.addView(label("BUILD: SSH-DIAG-20261103-B4",12,true));
         root.addView(label("Operations Controller • Pradipweb SSH monitor",13,false));
         gap(root,18);
 
@@ -168,7 +168,7 @@ public class MainActivity extends Activity {
             else if("DISK".equals(key)) out.append("Root disk: ").append(value).append('\n');
             else if("CONTAINER".equals(key)) containers.append("  • ").append(value).append('\n');
             else if("FRONTEND_HTTP".equals(key)) out.append("Frontend HTTP: ").append(httpHealth(value)).append('\n');
-            else if("BACKEND_HTTP".equals(key)) out.append("Backend API HTTP: ").append(httpHealth(value)).append('\n');
+            else if("BACKEND_HTTP".equals(key)) out.append("Backend API probe: ").append(httpHealth(value)).append('\n');
         }
         out.append("\nDOCKER CONTAINERS\n");
         out.append(containers.length()==0 ? "  No container data returned\n" : containers);
@@ -179,6 +179,7 @@ public class MainActivity extends Activity {
     private String httpHealth(String code) {
         try {
             int status=Integer.parseInt(code);
+            if(status==426) return "HTTPS REQUIRED (426) — HTTP probe was rejected";
             return status>=200 && status<400 ? "HEALTHY ("+code+")" : "NOT HEALTHY ("+code+")";
         } catch(Exception ignored) { return "UNAVAILABLE ("+code+")"; }
     }
