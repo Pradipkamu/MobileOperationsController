@@ -18,6 +18,9 @@ import android.util.Base64;
 public final class PinnedHostKeyRepository implements HostKeyRepository {
     private final String expectedHost;
     private final String expectedFingerprint;
+    private static volatile String lastCheckDiagnostic = "No host-key comparison has run yet.";
+
+    public static String getLastCheckDiagnostic() { return lastCheckDiagnostic; }
 
     public PinnedHostKeyRepository(String expectedHost, String expectedFingerprint) {
         if (expectedHost == null || expectedHost.trim().isEmpty()) {
@@ -33,7 +36,12 @@ public final class PinnedHostKeyRepository implements HostKeyRepository {
 
     @Override
     public int check(String host, byte[] key) {
-        if (host == null || !expectedHost.equalsIgnoreCase(host) || key == null) {
+        if (host == null || !expectedHost.equalsIgnoreCase(host)) {
+            lastCheckDiagnostic = "Host name mismatch. Expected [" + expectedHost + "], received [" + String.valueOf(host) + "].";
+            return CHANGED;
+        }
+        if (key == null) {
+            lastCheckDiagnostic = "SSH library supplied a null host-key blob.";
             return CHANGED;
         }
         try {
@@ -41,9 +49,13 @@ public final class PinnedHostKeyRepository implements HostKeyRepository {
             String actual = "SHA256:" + Base64.encodeToString(digest, Base64.NO_WRAP | Base64.NO_PADDING);
             byte[] expectedBytes = expectedFingerprint.getBytes(StandardCharsets.US_ASCII);
             byte[] actualBytes = actual.getBytes(StandardCharsets.US_ASCII);
-            return MessageDigest.isEqual(expectedBytes, actualBytes) ? OK : CHANGED;
+            boolean matches = MessageDigest.isEqual(expectedBytes, actualBytes);
+            lastCheckDiagnostic = "Host [" + host + "], received key fingerprint [" + actual
+                    + "], saved fingerprint [" + expectedFingerprint + "], match=" + matches + ".";
+            return matches ? OK : CHANGED;
         } catch (Exception unavailable) {
             // Fail closed: cryptographic errors must never allow an SSH connection.
+            lastCheckDiagnostic = "Could not calculate SSH host-key fingerprint: " + unavailable.getClass().getSimpleName();
             return CHANGED;
         }
     }
