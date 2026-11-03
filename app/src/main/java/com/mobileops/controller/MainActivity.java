@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
     private static final String KEY_ALIAS = "mobile_ops_ssh_v1";
     private static final String HOST = "137.23.40.188";
     private TextView keyState, pinState, overall;
-    private EditText fingerprintInput;
+    private EditText fingerprintInput;\n    private TextView diagnosticOutput;
 
     private int dp(float n) { return (int)(n * getResources().getDisplayMetrics().density + 0.5f); }
     private TextView label(String s, int size, boolean bold) {
@@ -92,9 +92,55 @@ public class MainActivity extends Activity {
         next.addView(label("3. CONNECTION",17,true)); gap(next,6);
         next.addView(label("SSH authentication and live monitoring will be enabled after the SSH transport library is integrated and the trusted fingerprint is confirmed. This build does not claim an SSH connection.",13,false));
         gap(next,8);
-        next.addView(label("READ-ONLY POLICY • No server changes • No arbitrary shell commands",12,true));
+        next.addView(label("READ-ONLY POLICY • No server changes • No arbitrary shell commands",12,true));\n        gap(next,8);\n        diagnosticOutput=label("No server checks have been run.",13,false);\n        next.addView(diagnosticOutput);\n        button("TEST SSH & READ SERVER STATUS",next,()->runReadOnlyChecks());
         setContentView(scroll);
     }
+    private byte[] decryptStoredKey() throws Exception {
+        android.content.SharedPreferences prefs=getSharedPreferences(PREFS,0);
+        String ivText=prefs.getString("key_iv",null);
+        String encryptedText=prefs.getString("key_ciphertext",null);
+        if(ivText==null || encryptedText==null) throw new IllegalStateException("Import the SSH key first");
+        byte[] iv=Base64.decode(ivText,Base64.NO_WRAP);
+        byte[] encrypted=Base64.decode(encryptedText,Base64.NO_WRAP);
+        Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.DECRYPT_MODE,getOrCreateAesKey(),new GCMParameterSpec(128,iv));
+        return cipher.doFinal(encrypted);
+    }
+
+    private void runReadOnlyChecks() {
+        if(!hasEncryptedKey() || !hasPin()) {
+            Toast.makeText(this,"Import the key and save the verified host fingerprint first",Toast.LENGTH_LONG).show();
+            return;
+        }
+        diagnosticOutput.setText("Connecting securely…");
+        overall.setText("CONNECTING — verifying host and authenticating");
+        new Thread(() -> {
+            byte[] privateKey=null;
+            try {
+                privateKey=decryptStoredKey();
+                String host=PradipwebSshClient.run(privateKey,
+                    getSharedPreferences(PREFS,0).getString("host_fingerprint",""),
+                    PradipwebSshClient.Check.HOSTNAME);
+                String docker=PradipwebSshClient.run(privateKey,
+                    getSharedPreferences(PREFS,0).getString("host_fingerprint",""),
+                    PradipwebSshClient.Check.DOCKER_STATUS);
+                final String result="SSH authenticated • Host: "+host+"\n\nDocker containers:\n"+docker;
+                runOnUiThread(() -> {
+                    overall.setText("CONNECTED — host verified and key authenticated");
+                    diagnosticOutput.setText(result);
+                });
+            } catch(Exception e) {
+                final String message=e.getMessage()==null?"Connection failed":e.getMessage();
+                runOnUiThread(() -> {
+                    overall.setText("NOT CONNECTED — verification or authentication failed");
+                    diagnosticOutput.setText("SSH check failed: "+message);
+                });
+            } finally {
+                if(privateKey!=null) java.util.Arrays.fill(privateKey,(byte)0);
+            }
+        },"pradipweb-ssh-check").start();
+    }
+
     private boolean hasEncryptedKey() {
         return getSharedPreferences(PREFS,0).contains("key_ciphertext");
     }
