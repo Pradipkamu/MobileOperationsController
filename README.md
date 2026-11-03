@@ -8,7 +8,7 @@ Native Android application for secure, approval-controlled operations monitoring
 - Imported PEM private keys are encrypted at rest using Android Keystore AES-GCM.
 - JSch SSH2 transport is integrated in the source.
 - SSH host verification uses a strict SHA256 pin for the configured host. Unknown or mismatched host keys are rejected.
-- The app has a read-only connection test for hostname and Docker container status. It has no arbitrary shell-command field and no server write operations.
+- The app has a read-only live monitoring for hostname, uptime, CPU load, RAM, root disk, Docker containers, frontend HTTP response and FastAPI OpenAPI HTTP response. It has no arbitrary shell-command field and no server write operations.
 
 **Build status:** A signed version 0.4 APK was successfully produced in Termux on ARM64, and the packaged DEX was verified to contain the diagnostic build marker `SSH-DIAG-20261103-B1`.
 
@@ -54,7 +54,7 @@ After the one-time branch setup below, future builds use a single command:
 cd ~/MobileOperationsController && bash build_apk.sh
 ```
 
-The script fetches and fast-forwards this branch, downloads the pinned JSch dependency if missing, compiles the Android Java source, creates a fresh DEX/APK, aligns it, signs it with the keystore kept on the phone, verifies the signature, and atomically replaces `~/storage/downloads/controller-v04-signed.apk`. It never deletes the previous Downloads APK until the new APK has passed signature verification.
+The script fetches and fast-forwards this branch, downloads the pinned JSch dependency if missing, compiles the Android Java source, creates a fresh DEX/APK, aligns it, signs it with the keystore kept on the phone, verifies the signature, and atomically replaces `~/storage/downloads/controller-v06-signed.apk`. It never deletes the previous Downloads APK until the new APK has passed signature verification.
 
 ### One-time setup on an existing Termux checkout
 
