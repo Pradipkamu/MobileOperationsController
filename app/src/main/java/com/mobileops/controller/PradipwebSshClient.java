@@ -12,7 +12,7 @@ import java.security.Security;
 
 /** SSH client exposing only fixed, read-only server diagnostics. */
 public final class PradipwebSshClient {
-    public enum Check { HOSTNAME, DOCKER_STATUS }
+    public enum Check { HOSTNAME, DOCKER_STATUS, SYSTEM_OVERVIEW }
 
     private static final String HOST = "137.23.40.188";
     private static final String USER = "ubuntu";
@@ -156,6 +156,15 @@ public final class PradipwebSshClient {
         switch (check) {
             case HOSTNAME: return "hostname";
             case DOCKER_STATUS: return "docker ps --format '{{.Names}}|{{.Status}}|{{.State}}'";
+            case SYSTEM_OVERVIEW:
+                return "printf 'HOST|' ; hostname; " +
+                    "printf 'UPTIME|' ; (uptime -p 2>/dev/null || cat /proc/uptime); " +
+                    "printf 'LOAD|' ; cut -d ' ' -f1-3 /proc/loadavg; " +
+                    "awk '/MemTotal:/ {t=\\$2} /MemAvailable:/ {a=\\$2} END {u=t-a; printf \\"MEMORY|%.0f/%.0f MiB (%.0f%%)\\\\n\\",u/1024,t/1024,(u/t)*100}' /proc/meminfo; " +
+                    "df -hP / | awk 'NR==2 {print \\"DISK|\\\" \\$3 \\"/\\\" \\$2 \\" (\\\" \\$5 \\" used)\\"}'; " +
+                    "docker ps --format '{{.Names}}|{{.Status}}' | sed 's/^/CONTAINER|/' ; " +
+                    "printf 'FRONTEND_HTTP|' ; (curl -sS -o /dev/null -w '%{http_code}' --max-time 4 http://127.0.0.1:5173/ 2>/dev/null || echo 000); printf '\\\\n'; " +
+                    "printf 'BACKEND_HTTP|' ; (curl -sS -o /dev/null -w '%{http_code}' --max-time 4 http://127.0.0.1:8000/openapi.json 2>/dev/null || echo 000); printf '\\\\n'";
             default: throw new IllegalArgumentException("Unsupported read-only server check.");
         }
     }
