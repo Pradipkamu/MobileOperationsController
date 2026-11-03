@@ -8,6 +8,8 @@ import com.jcraft.jsch.Session;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Properties;
+import java.security.Security;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /** SSH client exposing only fixed, read-only server diagnostics. */
 public final class PradipwebSshClient {
@@ -26,6 +28,13 @@ public final class PradipwebSshClient {
             throw new IllegalArgumentException("No private key bytes were loaded. Re-import the SSH key.");
         if (fingerprint == null || fingerprint.trim().isEmpty())
             throw new IllegalArgumentException("No trusted server fingerprint is saved.");
+
+        // Android versions may not expose Ed25519 to JSch's signature checks.
+        // Register the bundled provider before SSH key-exchange negotiation.
+        synchronized (PradipwebSshClient.class) {
+            Security.removeProvider("BC");
+            Security.insertProviderAt(new BouncyCastleProvider(), 1);
+        }
 
         JSch jsch = new JSch();
         Session session = null;
