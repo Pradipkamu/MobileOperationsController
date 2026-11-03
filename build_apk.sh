@@ -84,7 +84,7 @@ step "Generate fresh DEX"
   "$JSCH_JAR"
 [[ -s "$WORK/dex/classes.dex" ]] || fail "D8 did not produce classes.dex"
 
-if ! strings "$WORK/dex/classes.dex" | grep -F "$MARKER" >/dev/null; then
+if ! grep -aF "$MARKER" "$WORK/dex/classes.dex" >/dev/null; then
   fail "Fresh DEX is missing expected build marker $MARKER. Refusing to package."
 fi
 
@@ -116,7 +116,7 @@ apksigner sign \
 
 step "Verify signature and packaged build"
 apksigner verify --verbose "$WORK/$APK_NAME"
-strings <(unzip -p "$WORK/$APK_NAME" classes.dex) | grep -F "$MARKER" >/dev/null || fail "Signed APK is missing expected build marker"
+unzip -p "$WORK/$APK_NAME" classes.dex | grep -aF "$MARKER" >/dev/null || fail "Signed APK is missing expected build marker"
 
 # Stage beside the destination, then atomically replace the old APK only after all checks pass.
 TEMP_DEST="$DOWNLOAD_DIR/.$APK_NAME.new"
