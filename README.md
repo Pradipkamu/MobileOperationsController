@@ -44,3 +44,30 @@ Never accept a fingerprint merely because it is displayed by an untrusted first 
 ## Project structure
 
 See `app/src/main` for Android source and `docs/BUILD_TERMUX.md` for Termux build and signing steps.
+
+
+## One-command Termux build (recommended)
+
+After the one-time branch setup below, future builds use a single command:
+
+```bash
+cd ~/MobileOperationsController && bash build_apk.sh
+```
+
+The script fetches and fast-forwards this branch, downloads the pinned JSch dependency if missing, compiles the Android Java source, creates a fresh DEX/APK, aligns it, signs it with the keystore kept on the phone, verifies the signature, and atomically replaces `~/storage/downloads/controller-v04-signed.apk`. It never deletes the previous Downloads APK until the new APK has passed signature verification.
+
+### One-time setup on an existing Termux checkout
+
+Run these commands once to switch the existing checkout to the maintained development branch:
+
+```bash
+cd ~/MobileOperationsController
+git fetch origin
+git switch --track origin/feature/termux-one-command-apk-builder
+```
+
+Do not reset or discard local changes. The branch includes the current SSH connection source and the visible diagnostic build marker.
+
+### Local-only files
+
+The signing keystore, SSH private key, build output, downloaded JAR dependencies and backup copies remain local and are excluded from Git. Never upload private keys, keystores, passwords or signing configuration.
