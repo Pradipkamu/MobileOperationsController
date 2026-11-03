@@ -163,7 +163,7 @@ public final class PradipwebSshClient {
                     "TOTAL=$(awk '/MemTotal:/ {print $2}' /proc/meminfo); " +
                     "AVAILABLE=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo); " +
                     "USED=$((TOTAL-AVAILABLE)); printf 'MEMORY|%s/%s MiB\\n' \"$((USED/1024))\" \"$((TOTAL/1024))\"; " +
-                    "df -hP / | tail -1 | sed 's/^/DISK|/'; " +
+                    "df -hP / | awk 'NR==2 {printf \\"DISK|%s used / %s total (%s used)\\\\n\\",\\$3,\\$2,\\$5}'; " +
                     "docker ps --format '{{.Names}}|{{.Status}}' | sed 's/^/CONTAINER|/'; " +
                     "printf 'FRONTEND_HTTP|' ; (curl -sS -o /dev/null -w '%{http_code}' --max-time 4 http://127.0.0.1:5173/ 2>/dev/null || echo 000); printf '\\n'; " +
                     "printf 'BACKEND_HTTP|' ; (curl -sS -o /dev/null -w '%{http_code}' --max-time 4 http://127.0.0.1:8000/openapi.json 2>/dev/null || echo 000); printf '\\n'";
