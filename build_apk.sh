@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 REPO_DIR="$HOME/MobileOperationsController"
 BRANCH="feature/termux-one-command-apk-builder"
-APK_NAME="controller-v05-signed.apk"
+APK_NAME="controller-v06-signed.apk"
 DOWNLOAD_DIR="$HOME/storage/downloads"
 KEYSTORE="$HOME/.android/mobile-operations-controller.jks"
 KEY_ALIAS="mobilecontroller"
@@ -14,7 +14,7 @@ BC_JAR="$REPO_DIR/libs/bcprov-jdk18on-$BC_VERSION.jar"
 ANDROID_PLATFORM="$HOME/lib/android-sdk/platforms/android-35/android.jar"
 ANDROID_LINK_PLATFORM="$HOME/lib/android-sdk/platforms/android-28/android.jar"
 BUILD_TOOLS="$HOME/lib/android-sdk/build-tools/35.0.0"
-MARKER="SSH-DIAG-20261103-B2"
+MARKER="SSH-DIAG-20261103-B3"
 
 fail() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
 step() { printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
@@ -109,8 +109,8 @@ aapt2 link \
   -I "$ANDROID_LINK_PLATFORM" \
   --min-sdk-version 23 \
   --target-sdk-version 35 \
-  --version-code 5 \
-  --version-name 0.5
+  --version-code 6 \
+  --version-name 0.6
 
 cp "$WORK/unsigned.apk" "$WORK/controller.apk"
 cp "$WORK/dex/classes.dex" "$WORK/classes.dex"
