@@ -84,7 +84,7 @@ step "Generate fresh DEX"
   "$JSCH_JAR"
 [[ -s "$WORK/dex/classes.dex" ]] || fail "D8 did not produce classes.dex"
 
-if ! strings "$WORK/dex/classes.dex" | grep -Fq "$MARKER"; then
+if ! strings "$WORK/dex/classes.dex" | grep -F "$MARKER" >/dev/null; then
   fail "Fresh DEX is missing expected build marker $MARKER. Refusing to package."
 fi
 
