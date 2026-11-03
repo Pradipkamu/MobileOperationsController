@@ -155,24 +155,24 @@ public class MainActivity extends Activity {
     }
 
     private String formatOverview(String raw) {
-        StringBuilder out=new StringBuilder("SERVER CONNECTION  •  SECURE\\n");
+        StringBuilder out=new StringBuilder("SERVER CONNECTION  •  SECURE\n");
         StringBuilder containers=new StringBuilder();
-        for(String line:raw.split("\\n")) {
+        for(String line:raw.split("\n")) {
             String[] parts=line.split("\\|",2);
             if(parts.length<2) continue;
             String key=parts[0], value=parts[1].trim();
-            if("HOST".equals(key)) out.append("Server: ").append(value).append('\\n');
-            else if("UPTIME".equals(key)) out.append("Uptime: ").append(value).append('\\n');
-            else if("LOAD".equals(key)) out.append("CPU load (1/5/15 min): ").append(value).append('\\n');
-            else if("MEMORY".equals(key)) out.append("RAM: ").append(value).append('\\n');
-            else if("DISK".equals(key)) out.append("Root disk: ").append(value).append('\\n');
-            else if("CONTAINER".equals(key)) containers.append("  • ").append(value).append('\\n');
-            else if("FRONTEND_HTTP".equals(key)) out.append("Frontend HTTP: ").append(httpHealth(value)).append('\\n');
-            else if("BACKEND_HTTP".equals(key)) out.append("Backend API HTTP: ").append(httpHealth(value)).append('\\n');
+            if("HOST".equals(key)) out.append("Server: ").append(value).append('\n');
+            else if("UPTIME".equals(key)) out.append("Uptime: ").append(value).append('\n');
+            else if("LOAD".equals(key)) out.append("CPU load (1/5/15 min): ").append(value).append('\n');
+            else if("MEMORY".equals(key)) out.append("RAM: ").append(value).append('\n');
+            else if("DISK".equals(key)) out.append("Root disk: ").append(value).append('\n');
+            else if("CONTAINER".equals(key)) containers.append("  • ").append(value).append('\n');
+            else if("FRONTEND_HTTP".equals(key)) out.append("Frontend HTTP: ").append(httpHealth(value)).append('\n');
+            else if("BACKEND_HTTP".equals(key)) out.append("Backend API HTTP: ").append(httpHealth(value)).append('\n');
         }
-        out.append("\\nDOCKER CONTAINERS\\n");
-        out.append(containers.length()==0 ? "  No container data returned\\n" : containers);
-        out.append("\\nLast checked: ").append(new java.text.SimpleDateFormat("dd MMM yyyy, HH:mm:ss",java.util.Locale.getDefault()).format(new java.util.Date()));
+        out.append("\nDOCKER CONTAINERS\n");
+        out.append(containers.length()==0 ? "  No container data returned\n" : containers);
+        out.append("\nLast checked: ").append(new java.text.SimpleDateFormat("dd MMM yyyy, HH:mm:ss",java.util.Locale.getDefault()).format(new java.util.Date()));
         return out.toString();
     }
 
