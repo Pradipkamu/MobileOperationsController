@@ -6,7 +6,7 @@ import com.jcraft.jsch.UserInfo;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.Base64;
+import android.util.Base64;
 
 /**
  * Strict SSH host-key pinning for the configured Pradipweb endpoint.
@@ -38,8 +38,7 @@ public final class PinnedHostKeyRepository implements HostKeyRepository {
         }
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256").digest(key);
-            String actual = "SHA256:" + Base64.getEncoder().withoutPadding()
-                    .encodeToString(digest);
+            String actual = "SHA256:" + Base64.encodeToString(digest, Base64.NO_WRAP | Base64.NO_PADDING);
             byte[] expectedBytes = expectedFingerprint.getBytes(StandardCharsets.US_ASCII);
             byte[] actualBytes = actual.getBytes(StandardCharsets.US_ASCII);
             return MessageDigest.isEqual(expectedBytes, actualBytes) ? OK : CHANGED;
