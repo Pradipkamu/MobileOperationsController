@@ -10,7 +10,11 @@ Native Android application for secure, approval-controlled operations monitoring
 - SSH host verification uses a strict SHA256 pin for the configured host. Unknown or mismatched host keys are rejected.
 - The app has a read-only connection test for hostname and Docker container status. It has no arbitrary shell-command field and no server write operations.
 
-**Build and live connection status are not yet verified on the target phone/server.** The UI must only show Connected after the SSH handshake passes the pinned host-key check, public-key authentication succeeds and both read-only checks return successfully.
+**Build status:** A signed version 0.4 APK was successfully produced in Termux on ARM64, and the packaged DEX was verified to contain the diagnostic build marker `SSH-DIAG-20261103-B1`.
+
+**Live SSH status:** Strict server host-key verification now progresses past the earlier host-key mismatch, but Android JSch public-key authentication currently fails with `There are not any available sig algorithm.` Normal Termux SSH authentication using the same RSA 2048-bit client key succeeds. The Android RSA signature-algorithm compatibility issue remains open. The UI must only show Connected after host-key verification, public-key authentication and both read-only checks succeed.
+
+See [the verified Termux build and SSH troubleshooting record](docs/TERMUX_BUILD_AND_SSH_STATUS_2026-11-03.md) for exact commands, toolchain workarounds and test results.
 
 ## Pradipweb target
 
