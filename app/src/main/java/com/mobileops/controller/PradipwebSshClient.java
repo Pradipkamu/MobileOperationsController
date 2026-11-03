@@ -107,7 +107,7 @@ public final class PradipwebSshClient {
         String message = safeMessage(error);
         String lower = message.toLowerCase();
         if (lower.contains("fingerprint") || lower.contains("hostkey") || lower.contains("host key"))
-            return "SERVER IDENTITY CHECK FAILED. The saved SHA256 fingerprint does not match the SSH server key, or the fingerprint format is invalid. Verify the fingerprint from the server console and compare it exactly. Do not bypass this check.\\nDetails: " + message;
+            return "SERVER IDENTITY CHECK FAILED. Strict verification remains enabled. " + PinnedHostKeyRepository.getLastCheckDiagnostic() + "\\nSSH details: " + message;
         if (lower.contains("auth fail") || lower.contains("authentication") || lower.contains("publickey"))
             return "SSH AUTHENTICATION FAILED. The server was reached, but the key was not accepted for user ubuntu. Confirm that this exact public key is in /home/ubuntu/.ssh/authorized_keys and that the selected private key is its matching pair.\\nDetails: " + message;
         if (lower.contains("private key") || lower.contains("invalid privatekey") || lower.contains("invalid key"))
