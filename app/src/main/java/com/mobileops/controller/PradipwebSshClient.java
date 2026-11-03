@@ -127,7 +127,7 @@ public final class PradipwebSshClient {
         String m = safeMessage(error);
         String l = m.toLowerCase();
         if (l.contains("reject") || l.contains("hostkey") || l.contains("host key"))
-            return "Server host-key verification failed. Confirm the saved SHA256 fingerprint from the server console. Details: " + m;
+            return "SERVER IDENTITY CHECK FAILED. Strict verification remains enabled. " + PinnedHostKeyRepository.getLastCheckDiagnostic() + " SSH details: " + m;
         if (l.contains("auth fail"))
             return "SSH authentication failed for ubuntu. The private key may not match /home/ubuntu/.ssh/authorized_keys. Details: " + m;
         if (l.contains("timeout") || l.contains("socket"))
