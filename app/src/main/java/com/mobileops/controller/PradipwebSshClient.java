@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Properties;
 import java.security.Security;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /** SSH client exposing only fixed, read-only server diagnostics. */
 public final class PradipwebSshClient {
@@ -33,7 +32,9 @@ public final class PradipwebSshClient {
         // Register the bundled provider before SSH key-exchange negotiation.
         synchronized (PradipwebSshClient.class) {
             Security.removeProvider("BC");
-            Security.insertProviderAt(new BouncyCastleProvider(), 1);
+            Class<?> providerClass = Class.forName("org.bouncycastle.jce.provider.BouncyCastleProvider");
+            java.security.Provider provider = (java.security.Provider) providerClass.getDeclaredConstructor().newInstance();
+            Security.insertProviderAt(provider, 1);
         }
 
         JSch jsch = new JSch();
