@@ -2,12 +2,15 @@
 
 Native Android application for secure, approval-controlled operations monitoring.
 
-## Current status
+## Current implementation
 
-- Native Android dashboard and SSH setup foundation.
-- Imported PEM private keys are encrypted at rest with Android Keystore (AES-GCM).
-- A strict JSch-compatible host-key repository has been added. It compares the raw SSH host key's SHA-256 digest with the independently supplied OpenSSH fingerprint and fails closed on a host or fingerprint mismatch.
-- **SSH transport, key authentication and live monitoring are not yet integrated.** The app must not display Connected until the host pin is checked during a real SSH handshake and public-key authentication succeeds.
+- Native Android screen for Pradipweb connection setup.
+- Imported PEM private keys are encrypted at rest using Android Keystore AES-GCM.
+- JSch SSH2 transport is integrated in the source.
+- SSH host verification uses a strict SHA256 pin for the configured host. Unknown or mismatched host keys are rejected.
+- The app has a read-only connection test for hostname and Docker container status. It has no arbitrary shell-command field and no server write operations.
+
+**Build and live connection status are not yet verified on the target phone/server.** The UI must only show Connected after the SSH handshake passes the pinned host-key check, public-key authentication succeeds and both read-only checks return successfully.
 
 ## Pradipweb target
 
@@ -16,24 +19,24 @@ Native Android application for secure, approval-controlled operations monitoring
 - Port: `22`
 - Access policy: read-only
 
+## First connection setup
+
+1. Obtain the SSH host's SHA256 fingerprint independently from the server console or administrator.
+2. Import the existing PEM private key using the Android document picker.
+3. Enter and save the independently verified fingerprint.
+4. Build and install the APK using [Termux build instructions](docs/BUILD_TERMUX.md).
+5. Run **TEST SSH & READ SERVER STATUS**. A mismatched fingerprint or failed key authentication must fail closed.
+
+Never accept a fingerprint merely because it is displayed by an untrusted first connection.
+
 ## Security requirements
 
-- The private SSH key is selected through Android's document picker and encrypted at rest with an AES-GCM key held by Android Keystore.
+- Private key material is encrypted at rest with an AES-GCM key held by Android Keystore and decrypted only in memory for the connection attempt.
 - Never commit private SSH keys, keystores, passwords, tokens, or signing configuration.
-- The host fingerprint must be obtained independently from the server console or administrator. Never trust an unverified first connection.
-- SSH host-key verification and public-key authentication are required before reporting Connected.
 - Use fixed allowlisted read-only commands only. No arbitrary shell execution.
 - Do not expose Pradipweb's internal ports publicly.
 - Server write operations are out of scope and require a separate explicit approval design.
 
-## Remaining implementation steps
-
-1. Integrate the maintained JSch SSH transport and connect it to the strict pinned-host verifier.
-2. Decrypt the saved key only in memory and perform public-key authentication.
-3. Add fixed read-only checks for Docker services, backend/frontend health and recent logs.
-4. Add timeouts, cancellation, sanitized errors and connection-state tests.
-5. Build and verify the APK on the target Android device.
-
 ## Project structure
 
-See `app/src/main` for Android source and `docs/BUILD_TERMUX.md` for the Termux build process.
+See `app/src/main` for Android source and `docs/BUILD_TERMUX.md` for Termux build and signing steps.
