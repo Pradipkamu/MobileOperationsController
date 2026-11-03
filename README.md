@@ -4,9 +4,10 @@ Native Android application for secure, approval-controlled operations monitoring
 
 ## Current status
 
-- v0.1: Native Android dashboard prototype.
-- SSH setup foundation: Android Keystore-backed encryption for an imported PEM private key and local storage of an independently verified OpenSSH SHA256 host fingerprint.
-- The current SSH setup screen does **not yet authenticate to the server** or retrieve live health/log data. It must not display a successful connection until SSH host-key verification and key-based authentication are implemented and tested.
+- Native Android dashboard and SSH setup foundation.
+- Imported PEM private keys are encrypted at rest with Android Keystore (AES-GCM).
+- A strict JSch-compatible host-key repository has been added. It compares the raw SSH host key's SHA-256 digest with the independently supplied OpenSSH fingerprint and fails closed on a host or fingerprint mismatch.
+- **SSH transport, key authentication and live monitoring are not yet integrated.** The app must not display Connected until the host pin is checked during a real SSH handshake and public-key authentication succeeds.
 
 ## Pradipweb target
 
@@ -25,13 +26,13 @@ Native Android application for secure, approval-controlled operations monitoring
 - Do not expose Pradipweb's internal ports publicly.
 - Server write operations are out of scope and require a separate explicit approval design.
 
-## Next implementation steps
+## Remaining implementation steps
 
-1. Integrate and test an Android-compatible SSH transport library.
-2. Enforce the saved SHA256 host fingerprint during the SSH handshake.
-3. Authenticate using the decrypted key only in memory; never write plaintext key material to disk.
-4. Add fixed read-only checks for Docker services, backend/frontend health and recent logs.
-5. Add timeouts, cancellation, sanitized errors and connection-state tests.
+1. Integrate the maintained JSch SSH transport and connect it to the strict pinned-host verifier.
+2. Decrypt the saved key only in memory and perform public-key authentication.
+3. Add fixed read-only checks for Docker services, backend/frontend health and recent logs.
+4. Add timeouts, cancellation, sanitized errors and connection-state tests.
+5. Build and verify the APK on the target Android device.
 
 ## Project structure
 
