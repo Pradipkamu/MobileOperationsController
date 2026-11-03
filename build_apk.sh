@@ -70,6 +70,12 @@ if [[ ! -s "$BC_JAR" ]]; then
   mv -f "$BC_JAR.tmp" "$BC_JAR"
 fi
 [[ -s "$BC_JAR" ]] || fail "Bouncy Castle dependency download failed"
+if ! "$JAVA_HOME/bin/jar" tf "$BC_JAR" | grep -F "org/bouncycastle/jce/provider/BouncyCastleProvider.class" >/dev/null; then
+  rm -f "$BC_JAR"
+  curl -fL --retry 3 "https://repo.maven.apache.org/maven2/org/bouncycastle/bcprov-jdk18on/$BC_VERSION/bcprov-jdk18on-$BC_VERSION.jar" -o "$BC_JAR.tmp"
+  mv -f "$BC_JAR.tmp" "$BC_JAR"
+  "$JAVA_HOME/bin/jar" tf "$BC_JAR" | grep -F "org/bouncycastle/jce/provider/BouncyCastleProvider.class" >/dev/null || fail "Downloaded Bouncy Castle JAR does not contain its provider class"
+fi
 
 WORK="$REPO_DIR/build/apk-work"
 rm -rf "$WORK"
