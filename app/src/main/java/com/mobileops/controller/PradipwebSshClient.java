@@ -43,6 +43,8 @@ public final class PradipwebSshClient {
             config.setProperty("StrictHostKeyChecking", "yes");
             config.setProperty("PreferredAuthentications", "publickey");
             config.setProperty("PubkeyAcceptedAlgorithms", "ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256,ssh-rsa");
+            // Pin the negotiated server host-key algorithm to the independently verified ED25519 key.
+            config.setProperty("server_host_key", "ssh-ed25519");
             session.setConfig(config);
             session.setTimeout(TIMEOUT_MS);
             try {
@@ -105,20 +107,20 @@ public final class PradipwebSshClient {
         String message = safeMessage(error);
         String lower = message.toLowerCase();
         if (lower.contains("fingerprint") || lower.contains("hostkey") || lower.contains("host key"))
-            return "SERVER IDENTITY CHECK FAILED. The saved SHA256 fingerprint does not match the SSH server key, or the fingerprint format is invalid. Verify the fingerprint from the server console and compare it exactly. Do not bypass this check.\nDetails: " + message;
+            return "SERVER IDENTITY CHECK FAILED. The saved SHA256 fingerprint does not match the SSH server key, or the fingerprint format is invalid. Verify the fingerprint from the server console and compare it exactly. Do not bypass this check.\\nDetails: " + message;
         if (lower.contains("auth fail") || lower.contains("authentication") || lower.contains("publickey"))
-            return "SSH AUTHENTICATION FAILED. The server was reached, but the key was not accepted for user ubuntu. Confirm that this exact public key is in /home/ubuntu/.ssh/authorized_keys and that the selected private key is its matching pair.\nDetails: " + message;
+            return "SSH AUTHENTICATION FAILED. The server was reached, but the key was not accepted for user ubuntu. Confirm that this exact public key is in /home/ubuntu/.ssh/authorized_keys and that the selected private key is its matching pair.\\nDetails: " + message;
         if (lower.contains("private key") || lower.contains("invalid privatekey") || lower.contains("invalid key"))
-            return "PRIVATE KEY PROBLEM. Re-import the matching, unencrypted PEM/OpenSSH private key. Encrypted keys requiring a passphrase are not supported by this screen yet.\nDetails: " + message;
+            return "PRIVATE KEY PROBLEM. Re-import the matching, unencrypted PEM/OpenSSH private key. Encrypted keys requiring a passphrase are not supported by this screen yet.\\nDetails: " + message;
         if (lower.contains("timeout") || lower.contains("timed out"))
-            return "NETWORK / SSH TIMEOUT. Check internet access, VPN/firewall, server availability, and that TCP port 22 is reachable.\nDetails: " + message;
+            return "NETWORK / SSH TIMEOUT. Check internet access, VPN/firewall, server availability, and that TCP port 22 is reachable.\\nDetails: " + message;
         if (lower.contains("refused"))
-            return "SSH PORT REFUSED THE CONNECTION. The server is reachable but port 22 is not accepting connections, or a firewall is rejecting it.\nDetails: " + message;
+            return "SSH PORT REFUSED THE CONNECTION. The server is reachable but port 22 is not accepting connections, or a firewall is rejecting it.\\nDetails: " + message;
         if (lower.contains("unresolved") || lower.contains("unknownhost") || lower.contains("no address"))
-            return "HOST LOOKUP FAILED. Check the server address and network connection.\nDetails: " + message;
+            return "HOST LOOKUP FAILED. Check the server address and network connection.\\nDetails: " + message;
         if (root instanceof java.security.GeneralSecurityException)
-            return "LOCAL KEY DECRYPTION FAILED. Android Keystore could not decrypt the stored key. Re-import the private key.\nDetails: " + message;
-        return "CONNECTION CHECK FAILED.\nDetails: " + message;
+            return "LOCAL KEY DECRYPTION FAILED. Android Keystore could not decrypt the stored key. Re-import the private key.\\nDetails: " + message;
+        return "CONNECTION CHECK FAILED.\\nDetails: " + message;
     }
 
     private static String explainSshException(JSchException error) {
