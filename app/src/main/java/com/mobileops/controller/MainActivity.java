@@ -92,7 +92,8 @@ public class MainActivity extends Activity {
         next.addView(label("3. CONNECTION",17,true)); gap(next,6);
         next.addView(label("SSH authentication and live monitoring will be enabled after the SSH transport library is integrated and the trusted fingerprint is confirmed. This build does not claim an SSH connection.",13,false));
         gap(next,8);
-        next.addView(label("READ-ONLY POLICY • No server changes • No arbitrary shell commands",12,true));\n        gap(next,8);\n        diagnosticOutput=label("No server checks have been run.",13,false);\n        next.addView(diagnosticOutput);\n        button("TEST SSH & READ SERVER STATUS",next,()->runReadOnlyChecks());
+        next.addView(label("READ-ONLY POLICY • No server changes • No arbitrary shell commands",12,true));
+        gap(next,8);\n        diagnosticOutput=label("No server checks have been run.",13,false);\n        next.addView(diagnosticOutput);\n        button("TEST SSH & READ SERVER STATUS",next,()->runReadOnlyChecks());
         setContentView(scroll);
     }
     private byte[] decryptStoredKey() throws Exception {
